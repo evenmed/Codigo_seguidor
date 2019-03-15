@@ -56,6 +56,8 @@ const int maxSpeed = 120;
 const int minSpeed = 0;
 const int speedDiff = maxSpeed - minSpeed;
 
+float prevError = 0;
+
 void setup()
 {
 
@@ -75,15 +77,53 @@ void setup()
 
   digitalWrite(13, HIGH); // turn on Arduino's LED to indicate we are in calibration mode
 
-  const int cS = 70;
+  const int cS = 50;
 
   for (int i = 0; i < 400; i++)
   {
     qtrrc.calibrate();
+
+    if (i == 0)
+    { // Spin left
+      rightWheel(cS);
+      leftWheel(-1 * cS);
+    }
+    else if (digitalRead(S2) == 1 && digitalRead(S3) == 0)
+    { // Spin right
+      rightWheel(-1 * cS);
+      leftWheel(cS);
+    }
+    else if (digitalRead(S6) == 1 && digitalRead(S5) == 0)
+    { // Spin left
+      rightWheel(cS);
+      leftWheel(-1 * cS);
+    }
   }
 
   rightWheel(0);
   leftWheel(0);
+
+  delay(1000);
+
+  int position = qtrrc.readLine(sensorValues);
+
+  // Calibration is done, recenter the robot
+  while ( ! (position > 1900 && position < 2100) ) {
+    position = qtrrc.readLine(sensorValues);
+    if ( position < 2000 ) {
+      // Spin left
+      rightWheel(cS);
+      leftWheel(-1 * cS);
+    } else if ( position > 2000 ) {
+      // Spin left
+      rightWheel(-1 * cS);
+      leftWheel(cS);
+    }
+  }
+
+  rightWheel(0);
+  leftWheel(0);
+  
   digitalWrite(13, LOW);
 
   delay(1000);
