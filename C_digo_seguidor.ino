@@ -29,7 +29,7 @@
 
 // Sensors:
 #define NUM_SENSORS 5                  // number of sensors used
-#define TIMEOUT 1000                   // waits for X microseconds for sensor outputs to go low
+#define TIMEOUT 2000                   // waits for X microseconds for sensor outputs to go low
 #define EMITTER_PIN QTR_NO_EMITTER_PIN // no emitter
 
 const int S2 = 10; // Sensor 2 pin
