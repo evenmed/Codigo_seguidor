@@ -29,7 +29,7 @@
 
 // Sensors:
 #define NUM_SENSORS 5                  // number of sensors used
-#define TIMEOUT 2000                   // waits for X microseconds for sensor outputs to go low
+#define TIMEOUT 2500                   // waits for X microseconds for sensor outputs to go low
 #define EMITTER_PIN QTR_NO_EMITTER_PIN // no emitter
 
 const int S2 = 10; // Sensor 2 pin
@@ -79,7 +79,8 @@ void setup()
 
   const int cS = 50;
 
-  for (int i = 0; i < 400; i++)
+  // Calibration start
+  for (int i = 0; i < 200; i++)
   {
     qtrrc.calibrate();
 
@@ -88,12 +89,12 @@ void setup()
       rightWheel(cS);
       leftWheel(-1 * cS);
     }
-    else if (digitalRead(S2) == 1 && digitalRead(S3) == 0)
+    else if (digitalRead(S2) == 1 && digitalRead(S4) == 0)
     { // Spin right
       rightWheel(-1 * cS);
       leftWheel(cS);
     }
-    else if (digitalRead(S6) == 1 && digitalRead(S5) == 0)
+    else if (digitalRead(S6) == 1 && digitalRead(S4) == 0)
     { // Spin left
       rightWheel(cS);
       leftWheel(-1 * cS);
@@ -108,22 +109,26 @@ void setup()
   int position = qtrrc.readLine(sensorValues);
 
   // Calibration is done, recenter the robot
-  while ( ! (position > 1900 && position < 2100) ) {
-    position = qtrrc.readLine(sensorValues);
-    if ( position < 2000 ) {
+  while (!(position > 1800 && position < 2200))
+  {
+    if (position < 2000)
+    {
       // Spin left
       rightWheel(cS);
       leftWheel(-1 * cS);
-    } else if ( position > 2000 ) {
+    }
+    else if (position > 2000)
+    {
       // Spin left
       rightWheel(-1 * cS);
       leftWheel(cS);
     }
+    position = qtrrc.readLine(sensorValues);
   }
 
   rightWheel(0);
   leftWheel(0);
-  
+
   digitalWrite(13, LOW);
 
   delay(1000);
@@ -139,6 +144,7 @@ void loop()
     error = error * -1;
 
   const float errorPercent = error / 2000.0;
+  const float errorDif = errorPercent - prevError;
 
   if (error == 0)
   {
@@ -147,25 +153,55 @@ void loop()
   }
   else if (position < 2000)
   { // Spin left
-    rightWheel(maxSpeed);
-    leftWheel(smallerSpeed(errorPercent));
+    if (errorDif > 0)
+    {
+      // Error is getting bigger
+      rightWheel(biggerSpeed(errorPercent));
+      leftWheel(smallerSpeed(errorPercent));
+    }
+    else
+    {
+      // Error is getting smaller
+      rightWheel(biggerSpeed(errorPercent));
+      leftWheel(smallerSpeed(errorPercent));
+    }
   }
   else if (position > 2000)
   { // Spin right
-    rightWheel(smallerSpeed(errorPercent));
-    leftWheel(maxSpeed);
+    if (errorDif > 0)
+    {
+      // Error is getting bigger
+      rightWheel(smallerSpeed(errorPercent));
+      leftWheel(biggerSpeed(errorPercent));
+    }
+    else
+    {
+      // Error is getting smaller
+      rightWheel(smallerSpeed(errorPercent));
+      leftWheel(biggerSpeed(errorPercent));
+    }
   }
+
+  prevError = errorPercent;
 }
 
-int smallerSpeed(float eP)
+int smallerSpeed(float errorPercent)
 {
-  int mS = -1 * (maxSpeed / 2) * log10(eP + 0.01);
+  int mS;
+  // if (errorPercent < 0.01)
+  // {
+  //   mS = maxSpeed - speedDiff * (errorPercent);
+  // }
+  // else
+  // {
+  mS = -1 * (maxSpeed / 4) * log10(errorPercent + 0.0001);
+  // }
   return mS;
 }
 
-int biggerSpeed(float eP)
+int biggerSpeed(float errorPercent)
 {
-  int mS = maxSpeed - (speedDiff * (eP / 2));
+  int mS = maxSpeed + speedDiff * (errorPercent / 4);
   return mS;
 }
 
