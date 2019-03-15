@@ -49,8 +49,10 @@ const int AIN1 = 5;
 const int AIN2 = 4;
 
 const int PWMB = 9;
-const int BIN1 = 7;
-const int BIN2 = 6;
+const int BIN1 = 6;
+const int BIN2 = 7;
+
+const int baseSpeed = 120;
 
 const int maxSpeed = 120;
 const int minSpeed = 0;
@@ -84,17 +86,19 @@ void setup()
   {
     qtrrc.calibrate();
 
+    qtrrc.read(sensorValues);
+
     if (i == 0)
     { // Spin left
       rightWheel(cS);
       leftWheel(-1 * cS);
     }
-    else if (digitalRead(S2) == 1 && digitalRead(S4) == 0)
+    else if (sensorValues[4] > 900)
     { // Spin right
       rightWheel(-1 * cS);
       leftWheel(cS);
     }
-    else if (digitalRead(S6) == 1 && digitalRead(S4) == 0)
+    else if (sensorValues[0] > 900)
     { // Spin left
       rightWheel(cS);
       leftWheel(-1 * cS);
@@ -109,7 +113,7 @@ void setup()
   int position = qtrrc.readLine(sensorValues);
 
   // Calibration is done, recenter the robot
-  while (!(position > 1800 && position < 2200))
+  while (!(position > 1700 && position < 2300))
   {
     if (position < 2000)
     {
@@ -156,14 +160,14 @@ void loop()
     if (errorDif > 0)
     {
       // Error is getting bigger
-      rightWheel(biggerSpeed(errorPercent));
-      leftWheel(smallerSpeed(errorPercent));
+      rightWheel(biggerSpeed(errorPercent, errorDif));
+      leftWheel(smallerSpeed(errorPercent, errorDif));
     }
     else
     {
       // Error is getting smaller
-      rightWheel(biggerSpeed(errorPercent));
-      leftWheel(smallerSpeed(errorPercent));
+      rightWheel(biggerSpeed(errorPercent, errorDif));
+      leftWheel(smallerSpeed(errorPercent, errorDif));
     }
   }
   else if (position > 2000)
@@ -171,37 +175,31 @@ void loop()
     if (errorDif > 0)
     {
       // Error is getting bigger
-      rightWheel(smallerSpeed(errorPercent));
-      leftWheel(biggerSpeed(errorPercent));
+      rightWheel(smallerSpeed(errorPercent, errorDif));
+      leftWheel(biggerSpeed(errorPercent, errorDif));
     }
     else
     {
       // Error is getting smaller
-      rightWheel(smallerSpeed(errorPercent));
-      leftWheel(biggerSpeed(errorPercent));
+      rightWheel(smallerSpeed(errorPercent, errorDif));
+      leftWheel(biggerSpeed(errorPercent, errorDif));
     }
   }
 
   prevError = errorPercent;
 }
 
-int smallerSpeed(float errorPercent)
+int smallerSpeed(float eP, float eD) // eP = errorPercent, eD = errorDif
 {
-  int mS;
-  // if (errorPercent < 0.01)
-  // {
-  //   mS = maxSpeed - speedDiff * (errorPercent);
-  // }
-  // else
-  // {
-  mS = -1 * (maxSpeed / 4) * log10(errorPercent + 0.0001);
-  // }
+  // int mS = baseSpeed - (baseSpeed * 1.5 * errorPercent + 5 * errorDif * baseSpeed);
+  int mS = baseSpeed * eP * eP - 2 * baseSpeed * eP + baseSpeed - 50 * eD * baseSpeed;
   return mS;
 }
 
-int biggerSpeed(float errorPercent)
+int biggerSpeed(float eP, float eD) // eP = errorPercent, eD = errorDif
 {
-  int mS = maxSpeed + speedDiff * (errorPercent / 4);
+  // int mS = baseSpeed + (baseSpeed * 1.5 * errorPercent + 5 * errorDif * baseSpeed);
+  int mS = -1 * baseSpeed * eP * eP + 2 * baseSpeed * eP + baseSpeed + 50 * eD * baseSpeed;
   return mS;
 }
 
