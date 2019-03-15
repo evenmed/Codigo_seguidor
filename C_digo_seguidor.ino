@@ -52,7 +52,7 @@ const int PWMB = 9;
 const int BIN1 = 7;
 const int BIN2 = 6;
 
-const int maxSpeed = 100;
+const int maxSpeed = 120;
 const int minSpeed = 0;
 const int speedDiff = maxSpeed - minSpeed;
 
@@ -84,25 +84,8 @@ void setup()
 
   rightWheel(0);
   leftWheel(0);
-  digitalWrite(13, LOW); // turn off Arduino's LED to indicate we are through with calibration
+  digitalWrite(13, LOW);
 
-  // print the calibration minimum values measured when emitters were on
-  //Serial.begin(9600);
-  //for (int i = 0; i < NUM_SENSORS; i++)
-  //{
-  //Serial.print(qtrrc.calibratedMinimumOn[i]);
-  //Serial.print(' ');
-  //}
-  //Serial.println();
-
-  // print the calibration maximum values measured when emitters were on
-  //for (int i = 0; i < NUM_SENSORS; i++)
-  //{
-  //Serial.print(qtrrc.calibratedMaximumOn[i]);
-  //Serial.print(' ');
-  //}
-  //Serial.println();
-  //Serial.println();
   delay(1000);
 }
 
@@ -110,13 +93,6 @@ void loop()
 {
   // read calibrated sensor values and obtain a measure of the line position from 0 to 4000
   unsigned int position = qtrrc.readLine(sensorValues);
-  /*
-  Serial.begin(9600);
-  Serial.print(position);
-  Serial.print("Prueba");
-  Serial.println();
-  delay(500);
-  */
   int error = 2000 - position; // 2000 == max error | 0 == no error
 
   if (error < 0)
@@ -143,8 +119,13 @@ void loop()
 
 int smallerSpeed(float eP)
 {
-  //int mS = maxSpeed * (eP * eP) - 140 * eP + maxSpeed;
-  int mS = -40 * log10(eP + 0.01); // TODO: change this to use our max and min variables
+  int mS = -1 * (maxSpeed / 2) * log10(eP + 0.01);
+  return mS;
+}
+
+int biggerSpeed(float eP)
+{
+  int mS = maxSpeed - (speedDiff * (eP / 2));
   return mS;
 }
 
