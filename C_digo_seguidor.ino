@@ -1,7 +1,5 @@
 #include <QTRSensors.h>
 
-// Bruno y Viry
-
 // Sensors:
 #define NUM_SENSORS 5                  // number of sensors used
 #define TIMEOUT 2500                   // waits for X microseconds for sensor outputs to go low
@@ -27,7 +25,7 @@ const int PWMB = 9;
 const int BIN1 = 6;
 const int BIN2 = 7;
 
-const int baseSpeed = 120;
+const int baseSpeed = 100;
 
 const int maxSpeed = 120;
 const int minSpeed = 0;
@@ -167,15 +165,15 @@ void loop()
 int smallerSpeed(float eP, float eD) // eP = errorPercent, eD = errorDif
 {
   // int mS = baseSpeed - (baseSpeed * 1.5 * errorPercent + 5 * errorDif * baseSpeed);
-  int mS = baseSpeed * eP * eP - 2 * baseSpeed * eP + baseSpeed - 50 * eD * baseSpeed;
+  int mS = baseSpeed * eP * eP - 2 * baseSpeed * eP + baseSpeed - 100 * eD * baseSpeed;
   return mS;
 }
 
 int biggerSpeed(float eP, float eD) // eP = errorPercent, eD = errorDif
 {
   // int mS = baseSpeed + (baseSpeed * 1.5 * errorPercent + 5 * errorDif * baseSpeed);
-  int mS = -1 * baseSpeed * eP * eP + 2 * baseSpeed * eP + baseSpeed + 50 * eD * baseSpeed;
-  error = error * -1;
+  int mS = -1 * baseSpeed * eP * eP + 2 * baseSpeed * eP + baseSpeed + 100 * eD * baseSpeed;
+  return mS;
 }
 
 void rightWheel(int speed)
