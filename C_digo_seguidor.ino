@@ -35,8 +35,8 @@
 const int S2 = 10; // Sensor 2 pin
 const int S3 = 11; // Sensor 3 pin
 const int S4 = 12; // Sensor 4 pin
-const int S5 = 2; // Sensor 5 pin
-const int S6 = 8; // Sensor 6 pin
+const int S5 = 2;  // Sensor 5 pin
+const int S6 = 8;  // Sensor 6 pin
 
 // sensors 0 through 4 are connected to digital pins 2 through 6, respectively
 QTRSensorsRC qtrrc((unsigned char[]){S6, S5, S4, S3, S2},
@@ -77,8 +77,9 @@ void setup()
 
   const int cS = 70;
 
-  for (int i = 0; i < 400; i++) {
-   qtrrc.calibrate();
+  for (int i = 0; i < 400; i++)
+  {
+    qtrrc.calibrate();
   }
 
   rightWheel(0);
@@ -89,16 +90,16 @@ void setup()
   //Serial.begin(9600);
   //for (int i = 0; i < NUM_SENSORS; i++)
   //{
-    //Serial.print(qtrrc.calibratedMinimumOn[i]);
-    //Serial.print(' ');
+  //Serial.print(qtrrc.calibratedMinimumOn[i]);
+  //Serial.print(' ');
   //}
   //Serial.println();
 
   // print the calibration maximum values measured when emitters were on
   //for (int i = 0; i < NUM_SENSORS; i++)
   //{
-    //Serial.print(qtrrc.calibratedMaximumOn[i]);
-    //Serial.print(' ');
+  //Serial.print(qtrrc.calibratedMaximumOn[i]);
+  //Serial.print(' ');
   //}
   //Serial.println();
   //Serial.println();
@@ -118,23 +119,30 @@ void loop()
   */
   int error = 2000 - position; // 2000 == max error | 0 == no error
 
-  if (error < 0) error = error * -1;
+  if (error < 0)
+    error = error * -1;
 
   const float errorPercent = error / 2000.0;
 
-  if ( error == 0 ) {
+  if (error == 0)
+  {
     rightWheel(maxSpeed);
-    leftWheel(maxSpeed); 
-  } else if ( position < 2000 ) { // Spin left
+    leftWheel(maxSpeed);
+  }
+  else if (position < 2000)
+  { // Spin left
     rightWheel(maxSpeed);
-    leftWheel( maxSpeed - (speedDiff * errorPercent) ); 
-  } else if ( position > 2000 ) { // Spin right
-    rightWheel( maxSpeed - (speedDiff * errorPercent) );
-    leftWheel(maxSpeed); 
+    leftWheel(smallerSpeed(errorPercent));
+  }
+  else if (position > 2000)
+  { // Spin right
+    rightWheel(smallerSpeed(errorPercent));
+    leftWheel(maxSpeed);
   }
 }
 
-int smallerSpeed(float eP) {
+int smallerSpeed(float eP)
+{
   //int mS = maxSpeed * (eP * eP) - 140 * eP + maxSpeed;
   int mS = -40 * log10(eP + 0.01); // TODO: change this to use our max and min variables
   return mS;
