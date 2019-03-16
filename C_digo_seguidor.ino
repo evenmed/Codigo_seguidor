@@ -55,7 +55,7 @@ void setup()
   const int cS = 50;
 
   // Calibration start
-  for (int i = 0; i < 200; i++)
+  for (int i = 0; i < 150; i++)
   {
     qtrrc.calibrate();
 
@@ -66,12 +66,12 @@ void setup()
       rightWheel(cS);
       leftWheel(-1 * cS);
     }
-    else if (sensorValues[4] > 900)
+    else if (sensorValues[4] > 800)
     { // Spin right
       rightWheel(-1 * cS);
       leftWheel(cS);
     }
-    else if (sensorValues[0] > 900)
+    else if (sensorValues[0] > 800)
     { // Spin left
       rightWheel(cS);
       leftWheel(-1 * cS);
@@ -151,22 +151,20 @@ int motorSpeed(int opt, float eP, float eD)
   // Error difference factor
   int eDFactor = 100;
 
-  if (eD < 0) {
+  if (eD < 0)
     eDFactor = 60;
-  }
 
   // j == -1 -> fast speed | j == 1 -> slow speed
   int j = -1;
 
   if (opt == 0)
-  {
     j = 1;
-  }
 
   int mS = j * (baseSpeed * eP * eP - 2 * baseSpeed * eP - eDFactor * eD * baseSpeed) + baseSpeed;
 
   if (mS < minSpeed)
     mS = minSpeed;
+
   return mS;
 }
 
