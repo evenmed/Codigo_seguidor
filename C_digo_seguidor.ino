@@ -1,5 +1,7 @@
 #include <QTRSensors.h>
 
+// Bruno y Viry
+
 // Sensors:
 #define NUM_SENSORS 5                  // number of sensors used
 #define TIMEOUT 2500                   // waits for X microseconds for sensor outputs to go low
@@ -36,8 +38,6 @@ float prevError = 0;
 void setup()
 {
 
-  delay(500);
-
   // Arduino led:
   pinMode(13, OUTPUT);
 
@@ -50,63 +50,26 @@ void setup()
   pinMode(BIN2, OUTPUT);
   pinMode(PWMB, OUTPUT);
 
-  digitalWrite(13, HIGH); // turn on Arduino's LED to indicate we are in calibration mode
+  // For calibration / run:
+  pinMode(A1, OUTPUT);
+  pinMode(A2, INPUT);
 
-  const int cS = 50;
+  analogWrite(A1, 1000);
 
   // Calibration start
-  for (int i = 0; i < 120; i++)
+  while (analogRead(A2) > 800)
   {
+    digitalWrite(13, HIGH); // turn on Arduino's LED to indicate we are in calibration mode
+
     qtrrc.calibrate();
-
-    qtrrc.read(sensorValues);
-
-    if (i == 0)
-    { // Spin left
-      rightWheel(cS);
-      leftWheel(-1 * cS);
-    }
-    else if (sensorValues[4] > 700)
-    { // Spin right
-      rightWheel(-1 * cS);
-      leftWheel(cS);
-    }
-    else if (sensorValues[0] > 700)
-    { // Spin left
-      rightWheel(cS);
-      leftWheel(-1 * cS);
-    }
-  }
-
-  rightWheel(0);
-  leftWheel(0);
-
-  delay(1000);
-
-  int position = qtrrc.readLine(sensorValues);
-
-  // Calibration is done, recenter the robot
-  while (!(position > 1700 && position < 2300))
-  {
-    if (position < 2000)
-    {
-      // Spin left
-      rightWheel(cS);
-      leftWheel(-1 * cS);
-    }
-    else if (position > 2000)
-    {
-      // Spin left
-      rightWheel(-1 * cS);
-      leftWheel(cS);
-    }
-    position = qtrrc.readLine(sensorValues);
   }
 
   rightWheel(0);
   leftWheel(0);
 
   digitalWrite(13, LOW);
+
+  delay(500);
 }
 
 void loop()
@@ -143,35 +106,15 @@ void loop()
 // opt == 0 (slow) / 1 (fast), eP = errorPercent, eD = errorDif
 int motorSpeed(int opt, float eP, float eD)
 {
-  int bS = baseSpeed;
+  // int mS = baseSpeed - (baseSpeed * 1.5 * errorPercent + 5 * errorDif * baseSpeed);
+  int mS = baseSpeed * eP * eP - 2 * baseSpeed * eP + baseSpeed - 50 * eD * baseSpeed;
+  return mS;
+}
 
-  // Decrease baseSpeed when error is too HIGH
-  if (eP > 0.3)
-    bS = baseSpeed * (1 - (eP / 2));
-
-  // Increase error percent factor
-  eP = eP * 1.15;
-
-  // Error difference factor
-  int eDFactor = 100;
-
-  if (eD < 0)
-    eDFactor = 60;
-
-  // j == -1 -> fast speed | j == 1 -> slow speed
-  int j = -1;
-
-  if (opt == 0)
-    j = 1;
-
-  int mS = j * (0.95 * bS * eP * eP - 2 * bS * eP - eDFactor * eD * bS) + bS;
-
-  if (mS < minSpeed)
-    mS = minSpeed;
-
-  if (mS > maxSpeed)
-    mS = maxSpeed;
-
+int biggerSpeed(float eP, float eD) // eP = errorPercent, eD = errorDif
+{
+  // int mS = baseSpeed + (baseSpeed * 1.5 * errorPercent + 5 * errorDif * baseSpeed);
+  int mS = -1 * baseSpeed * eP * eP + 2 * baseSpeed * eP + baseSpeed + 50 * eD * baseSpeed;
   return mS;
 }
 
