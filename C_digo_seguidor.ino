@@ -25,9 +25,9 @@ const int PWMB = 9;
 const int BIN1 = 6;
 const int BIN2 = 7;
 
-const int baseSpeed = 100;
+const int baseSpeed = 105;
 
-const int maxSpeed = 120;
+const int maxSpeed = 255;
 const int minSpeed = 0;
 const int speedDiff = maxSpeed - minSpeed;
 
@@ -130,49 +130,32 @@ void loop()
   }
   else if (position < 2000)
   { // Spin left
-    if (errorDif > 0)
-    {
-      // Error is getting bigger
-      rightWheel(biggerSpeed(errorPercent, errorDif));
-      leftWheel(smallerSpeed(errorPercent, errorDif));
-    }
-    else
-    {
-      // Error is getting smaller
-      rightWheel(biggerSpeed(errorPercent, errorDif));
-      leftWheel(smallerSpeed(errorPercent, errorDif));
-    }
+    rightWheel(motorSpeed(1, errorPercent, errorDif));
+    leftWheel(motorSpeed(0, errorPercent, errorDif));
   }
   else if (position > 2000)
   { // Spin right
-    if (errorDif > 0)
-    {
-      // Error is getting bigger
-      rightWheel(smallerSpeed(errorPercent, errorDif));
-      leftWheel(biggerSpeed(errorPercent, errorDif));
-    }
-    else
-    {
-      // Error is getting smaller
-      rightWheel(smallerSpeed(errorPercent, errorDif));
-      leftWheel(biggerSpeed(errorPercent, errorDif));
-    }
+    rightWheel(motorSpeed(0, errorPercent, errorDif));
+    leftWheel(motorSpeed(1, errorPercent, errorDif));
   }
 
   prevError = errorPercent;
 }
 
-int smallerSpeed(float eP, float eD) // eP = errorPercent, eD = errorDif
+int motorSpeed(int opt, float eP, float eD) // opt = 0 (slow) / 1 (fast) eP = errorPercent, eD = errorDif
 {
-  // int mS = baseSpeed - (baseSpeed * 1.5 * errorPercent + 5 * errorDif * baseSpeed);
-  int mS = baseSpeed * eP * eP - 2 * baseSpeed * eP + baseSpeed - 100 * eD * baseSpeed;
-  return mS;
-}
+  eP = eP * 1.1;
+  int j = -1;
 
-int biggerSpeed(float eP, float eD) // eP = errorPercent, eD = errorDif
-{
-  // int mS = baseSpeed + (baseSpeed * 1.5 * errorPercent + 5 * errorDif * baseSpeed);
-  int mS = -1 * baseSpeed * eP * eP + 2 * baseSpeed * eP + baseSpeed + 100 * eD * baseSpeed;
+  if (opt == 0)
+  {
+    j = 1;
+  }
+
+  int mS = j * (baseSpeed * eP * eP - 2 * baseSpeed * eP - 70 * eD * baseSpeed) + baseSpeed;
+
+  if (mS < minSpeed)
+    mS = minSpeed;
   return mS;
 }
 
