@@ -142,9 +142,20 @@ void loop()
   prevError = errorPercent;
 }
 
-int motorSpeed(int opt, float eP, float eD) // opt = 0 (slow) / 1 (fast) eP = errorPercent, eD = errorDif
+// opt == 0 (slow) / 1 (fast), eP = errorPercent, eD = errorDif
+int motorSpeed(int opt, float eP, float eD)
 {
-  eP = eP * 1.1;
+  // Increase error percent factor
+  eP = eP * 1.08;
+
+  // Error difference factor
+  int eDFactor = 100;
+
+  if (eD < 0) {
+    eDFactor = 60;
+  }
+
+  // j == -1 -> fast speed | j == 1 -> slow speed
   int j = -1;
 
   if (opt == 0)
@@ -152,7 +163,7 @@ int motorSpeed(int opt, float eP, float eD) // opt = 0 (slow) / 1 (fast) eP = er
     j = 1;
   }
 
-  int mS = j * (baseSpeed * eP * eP - 2 * baseSpeed * eP - 70 * eD * baseSpeed) + baseSpeed;
+  int mS = j * (baseSpeed * eP * eP - 2 * baseSpeed * eP - eDFactor * eD * baseSpeed) + baseSpeed;
 
   if (mS < minSpeed)
     mS = minSpeed;
