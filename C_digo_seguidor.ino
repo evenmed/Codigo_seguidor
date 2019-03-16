@@ -25,7 +25,7 @@ const int PWMB = 9;
 const int BIN1 = 6;
 const int BIN2 = 7;
 
-const int baseSpeed = 105;
+const int baseSpeed = 100;
 
 const int maxSpeed = 255;
 const int minSpeed = 0;
@@ -55,7 +55,7 @@ void setup()
   const int cS = 50;
 
   // Calibration start
-  for (int i = 0; i < 150; i++)
+  for (int i = 0; i < 120; i++)
   {
     qtrrc.calibrate();
 
@@ -66,12 +66,12 @@ void setup()
       rightWheel(cS);
       leftWheel(-1 * cS);
     }
-    else if (sensorValues[4] > 800)
+    else if (sensorValues[4] > 700)
     { // Spin right
       rightWheel(-1 * cS);
       leftWheel(cS);
     }
-    else if (sensorValues[0] > 800)
+    else if (sensorValues[0] > 700)
     { // Spin left
       rightWheel(cS);
       leftWheel(-1 * cS);
@@ -107,8 +107,6 @@ void setup()
   leftWheel(0);
 
   digitalWrite(13, LOW);
-
-  delay(1000);
 }
 
 void loop()
@@ -123,7 +121,7 @@ void loop()
   const float errorPercent = error / 2000.0;
   const float errorDif = errorPercent - prevError;
 
-  if (position >= 1950 || position <= 2050)
+  if (position == 2000)
   {
     rightWheel(baseSpeed);
     leftWheel(baseSpeed);
@@ -145,8 +143,14 @@ void loop()
 // opt == 0 (slow) / 1 (fast), eP = errorPercent, eD = errorDif
 int motorSpeed(int opt, float eP, float eD)
 {
+  int bS = baseSpeed;
+
+  // Decrease baseSpeed when error is too HIGH
+  if (eP > 0.3)
+    bS = baseSpeed * (1 - (eP / 2));
+
   // Increase error percent factor
-  eP = eP * 1.08;
+  eP = eP * 1.15;
 
   // Error difference factor
   int eDFactor = 100;
@@ -160,10 +164,13 @@ int motorSpeed(int opt, float eP, float eD)
   if (opt == 0)
     j = 1;
 
-  int mS = j * (baseSpeed * eP * eP - 2 * baseSpeed * eP - eDFactor * eD * baseSpeed) + baseSpeed;
+  int mS = j * (0.95 * bS * eP * eP - 2 * bS * eP - eDFactor * eD * bS) + bS;
 
   if (mS < minSpeed)
     mS = minSpeed;
+
+  if (mS > maxSpeed)
+    mS = maxSpeed;
 
   return mS;
 }
