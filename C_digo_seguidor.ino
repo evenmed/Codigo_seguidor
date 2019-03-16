@@ -123,10 +123,10 @@ void loop()
   const float errorPercent = error / 2000.0;
   const float errorDif = errorPercent - prevError;
 
-  if (error == 0)
+  if (position >= 1950 || position <= 2050)
   {
-    rightWheel(maxSpeed);
-    leftWheel(maxSpeed);
+    rightWheel(baseSpeed);
+    leftWheel(baseSpeed);
   }
   else if (position < 2000)
   { // Spin left
