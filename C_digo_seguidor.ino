@@ -27,7 +27,7 @@ const int PWMB = 9;
 const int BIN1 = 6;
 const int BIN2 = 7;
 
-const int baseSpeed = 100;
+const int baseSpeed = 160;
 
 const int maxSpeed = 255;
 const int minSpeed = 0;
@@ -106,15 +106,35 @@ void loop()
 // opt == 0 (slow) / 1 (fast), eP = errorPercent, eD = errorDif
 int motorSpeed(int opt, float eP, float eD)
 {
-  // int mS = baseSpeed - (baseSpeed * 1.5 * errorPercent + 5 * errorDif * baseSpeed);
-  int mS = baseSpeed * eP * eP - 2 * baseSpeed * eP + baseSpeed - 50 * eD * baseSpeed;
-  return mS;
-}
+  int bS = baseSpeed;
 
-int biggerSpeed(float eP, float eD) // eP = errorPercent, eD = errorDif
-{
-  // int mS = baseSpeed + (baseSpeed * 1.5 * errorPercent + 5 * errorDif * baseSpeed);
-  int mS = -1 * baseSpeed * eP * eP + 2 * baseSpeed * eP + baseSpeed + 50 * eD * baseSpeed;
+  // Decrease baseSpeed when error is too HIGH
+  if (eP > 0.3)
+    bS = baseSpeed * (1 - (eP / 2));
+
+  // Increase error percent factor
+  eP = eP * 1.15;
+
+  // Error difference factor
+  int eDFactor = 100;
+
+  if (eD < 0)
+    eDFactor = 50;
+
+  // j == -1 -> fast speed | j == 1 -> slow speed
+  int j = -1;
+
+  if (opt == 0)
+    j = 1;
+
+  int mS = j * (bS * eP * eP - 2 * bS * eP - eDFactor * eD * bS) + bS;
+
+  // if (mS < minSpeed)
+  //   mS = minSpeed;
+
+  if (mS > maxSpeed)
+    mS = maxSpeed;
+
   return mS;
 }
 
